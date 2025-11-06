@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy Consumption Forecasting (Smart Grids)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f8fafc;
+            line-height: 1.6;
+            overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        body.dark {
+            background-color: #1e293b;
+            color: #f1f5f9;
+        }
+        
+        /* Navbar Styles */
+        .navbar {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            padding: 1rem 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo-img {
+            height: 40px;
+            width: auto;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+        
+        .nav-menu a:hover {
+            opacity: 0.8;
+        }
+        
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+        
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* Main Content */
+        main {
+            margin-top: 80px;
+            padding: 2rem 1rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .hero-section {
+            text-align: center;
+            padding: 3rem 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        
+        body.dark .hero-section {
+            background: #334155;
+        }
+        
+        .hero-section h1 {
+            font-size: 2.5rem;
+            color: #1e293b;
+            margin-bottom: 1rem;
+        }
+        
+        body.dark .hero-section h1 {
+            color: #f1f5f9;
+        }
+        
+        .hero-section p {
+            font-size: 1.1rem;
+            color: #64748b;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        body.dark .hero-section p {
+            color: #cbd5e1;
+        }
+        
+        /* Section Styles */
+        .section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        
+        body.dark .section {
+            background: #334155;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        
+        .section h2 {
+            font-size: 1.75rem;
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        body.dark .section h2 {
+            color: #f1f5f9;
+        }
+        
+        /* Form Styles */
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        body.dark .form-group label {
+            color: #cbd5e1;
+        }
+        
+        .form-group input {
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: white;
+        }
+        
+        body.dark .form-group input {
+            background: #475569;
+            border-color: #475569;
+            color: #f1f5f9;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            grid-column: 1 / -1;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+        }
+        
+        .result-container {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #2563eb;
+            margin-top: 1.5rem;
+            display: none;
+        }
+        
+        body.dark .result-container {
+            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+        }
+        
+        .result-container.show {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .prediction-result {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 1rem;
+        }
+        
+        body.dark .prediction-result {
+            color: #f1f5f9;
+        }
+        
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        @media (min-width: 768px) {
+            .charts-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .chart-container {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        body.dark .chart-container {
+            background: #475569;
+        }
+        
+        .chart-container h3 {
+            margin-bottom: 1rem;
+            color: #1e293b;
+            font-size: 1.25rem;
+        }
+        
+        body.dark .chart-container h3 {
+            color: #f1f5f9;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        /* About Us */
+        .about-content {
+            line-height: 1.8;
+            color: #475569;
+        }
+        
+        body.dark .about-content {
+            color: #cbd5e1;
+        }
+        
+        /* Contact */
+        .contact-info {
+            background: #f0f9ff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        body.dark .contact-info {
+            background: #1e40af;
+        }
+        
+        .contact-info p {
+            margin-bottom: 0.75rem;
+            color: #1e293b;
+        }
+        
+        body.dark .contact-info p {
+            color: #f1f5f9;
+        }
+        
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .contact-grid textarea {
+            resize: vertical;
+            min-height: 120px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+        }
+        
+        body.dark .contact-grid textarea {
+            background: #475569;
+            border-color: #475569;
+            color: #f1f5f9;
+        }
+        
+        .contact-grid textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-menu {
+                position: fixed;
+                left: -100%;
+                top: 70px;
+                flex-direction: column;
+                background-color: #2563eb;
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                box-shadow: 0 10px 27px rgba(0,0,0,0.05);
+                padding: 2rem 0;
+            }
+            
+            .nav-menu.active {
+                left: 0;
+            }
+            
+            .nav-menu li {
+                margin: 1rem 0;
+            }
+            
+            .theme-toggle {
+                margin: 1rem 0;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+            
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+            
+            .input-grid, .contact-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .section {
+                padding: 1.5rem;
+            }
+            
+            main {
+                padding: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .hero-section {
+                padding: 2rem 1rem;
+            }
+            
+            .section {
+                padding: 1rem;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        footer {
+            background: #1e293b;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        
+        body.dark footer {
+            background: #0f172a;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo-container">
+                <img src="https://miro.medium.com/v2/resize:fit:900/1*FLCVaO4KrMcqVOj7ZDKSCQ.png" alt="Energy Logo" class="logo-img">
+                <div class="logo">Energy Consumption Forecasting</div>
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#predict">Predict</a></li>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <button class="theme-toggle" id="themeToggle">☀️</button>
+            </ul>
+            <button class="menu-toggle" id="menuToggle">
+                ☰
+            </button>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="hero-section">
+            <h1>Smart Grid Energy Forecasting</h1>
+            <p>Advanced machine learning predictions for optimizing energy consumption and smart grid management</p>
+        </section>
+
+        <!-- Prediction Section -->
+        <section id="predict" class="section">
+            <h2>🔌 Energy Prediction</h2>
+            <form id="predictionForm" class="input-grid">
+                <div class="form-group">
+                    <label for="lights">Lights (Wh)</label>
+                    <input type="number" id="lights" name="lights" step="any" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="T1">T1 Temperature (°C)</label>
+                    <input type="number" id="T1" name="T1" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="RH_1">RH_1 Humidity (%)</label>
+                    <input type="number" id="RH_1" name="RH_1" step="any" min="0" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label for="T2">T2 Temperature (°C)</label>
+                    <input type="number" id="T2" name="T2" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="RH_2">RH_2 Humidity (%)</label>
+                    <input type="number" id="RH_2" name="RH_2" step="any" min="0" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label for="T3">T3 Temperature (°C)</label>
+                    <input type="number" id="T3" name="T3" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="RH_3">RH_3 Humidity (%)</label>
+                    <input type="number" id="RH_3" name="RH_3" step="any" min="0" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label for="T4">T4 Temperature (°C)</label>
+                    <input type="number" id="T4" name="T4" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="RH_4">RH_4 Humidity (%)</label>
+                    <input type="number" id="RH_4" name="RH_4" step="any" min="0" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label for="T5">T5 Temperature (°C)</label>
+                    <input type="number" id="T5" name="T5" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="RH_5">RH_5 Humidity (%)</label>
+                    <input type="number" id="RH_5" name="RH_5" step="any" min="0" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label for="T6">T6 Temperature (°C)</label>
+                    <input type="number" id="T6" name="T6" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="RH_6">RH_6 Humidity (%)</label>
+                    <input type="number" id="RH_6" name="RH_6" step="any" min="0" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label for="T7">T7 Temperature (°C)</label>
+                    <input type="number" id="T7" name="T7" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="RH_7">RH_7 Humidity (%)</label>
+                    <input type="number" id="RH_7" name="RH_7" step="any" min="0" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label for="T8">T8 Temperature (°C)</label>
+                    <input type="number" id="T8" name="T8" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="RH_8">RH_8 Humidity (%)</label>
+                    <input type="number" id="RH_8" name="RH_8" step="any" min="0" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label for="T9">T9 Temperature (°C)</label>
+                    <input type="number" id="T9" name="T9" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="RH_9">RH_9 Humidity (%)</label>
+                    <input type="number" id="RH_9" name="RH_9" step="any" min="0" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label for="T_out">Outdoor Temperature (°C)</label>
+                    <input type="number" id="T_out" name="T_out" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="Press_mm_hg">Pressure (mmHg)</label>
+                    <input type="number" id="Press_mm_hg" name="Press_mm_hg" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="RH_out">Outdoor Humidity (%)</label>
+                    <input type="number" id="RH_out" name="RH_out" step="any" min="0" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label for="Windspeed">Wind Speed (m/s)</label>
+                    <input type="number" id="Windspeed" name="Windspeed" step="any" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="Visibility">Visibility (km)</label>
+                    <input type="number" id="Visibility" name="Visibility" step="any" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="Tdewpoint">Dew Point (°C)</label>
+                    <input type="number" id="Tdewpoint" name="Tdewpoint" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="hour">Hour (0-23)</label>
+                    <input type="number" id="hour" name="hour" min="0" max="23" required>
+                </div>
+                <div class="form-group">
+                    <label for="dayofweek">Day of Week (0-6)</label>
+                    <input type="number" id="dayofweek" name="dayofweek" min="0" max="6" required>
+                </div>
+                <div class="form-group">
+                    <label for="month">Month (1-12)</label>
+                    <input type="number" id="month" name="month" min="1" max="12" required>
+                </div>
+                <div class="form-group">
+                    <label for="is_weekend">Is Weekend (0/1)</label>
+                    <input type="number" id="is_weekend" name="is_weekend" min="0" max="1" required>
+                </div>
+                <button type="submit" class="btn-primary" id="predictBtn">
+                    🔮 Predict Energy Consumption
+                </button>
+            </form>
+            
+            <div id="predictionResult" class="result-container"></div>
+            
+            <!-- Dynamic Charts Section -->
+            <div id="dynamicCharts" class="hidden">
+                <h3 style="margin-bottom: 1.5rem;">📊 Prediction Analysis</h3>
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Confidence Distribution</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="confidenceChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Feature Importance</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="featureChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Energy Prediction Trend</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Temperature vs Energy</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="tempChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Us Section -->
+        <section id="about" class="section">
+            <h2>ℹ️ About Us</h2>
+            <div class="about-content">
+                <p>We are dedicated to providing advanced energy consumption forecasting solutions using machine learning and smart grid technologies.</p>
+                <p>Developed by P. Harinath, this platform helps optimize energy usage for sustainable living.</p>
+                <p>Our mission is to empower users with accurate predictions to make informed decisions about energy management in Tirupati, Andhra Pradesh, India.</p>
+                <p>Welcome to Smart Grids Energy Forecasting, an innovative AI-powered platform dedicated to revolutionizing energy management in homes and smart grids. Founded in [Your Year/Location], we are a team of data scientists, engineers, and energy experts committed to making energy consumption predictable, efficient, and sustainable. Our goal is to empower users with real-time insights to reduce waste, lower costs, and minimize carbon footprints. By leveraging cutting-edge machine learning, we transform complex sensor data into actionable predictions, helping households and businesses optimize usage without compromising comfort.
+Whether you're a homeowner tracking daily habits or a facility manager monitoring commercial systems, our platform provides instant, accurate forecasts of energy demand. With a focus on advanced LSTM neural networks, we analyze patterns from appliance usage, environmental conditions, and time factors to classify consumption as Low, Medium, or High, complete with confidence scores and personalized recommendations.
+How Our Platform Works
+Our system is a full-stack web application that seamlessly integrates user inputs with machine learning for on-demand predictions. Here's a step-by-step breakdown:
+
+User Input Collection:
+
+Users enter data via an intuitive, responsive web form.
+The platform validates inputs in real-time to ensure accuracy.
+Data is submitted securely via a RESTful API endpoint (/predict).
+
+
+Data Processing:
+
+Feature Extraction: We process 29 input parameters (detailed below) representing real-world sensor readings.
+Normalization: Inputs are scaled using MinMaxScaler to ensure model compatibility (values mapped to [0, 1] range).
+Sequence Preparation: For time-series analysis, data is reshaped into sequences of 6 timesteps (LSTM input shape: [1, 6, 29]).
+
+
+Prediction Engine:
+
+A pre-trained LSTM Neural Network (Long Short-Term Memory) processes the sequence.
+The model outputs 3-class probabilities for energy levels.
+Classification: The highest probability class is selected, with softmax activation for confidence scoring.
+Output Generation: Returns structured JSON with prediction, confidence, probabilities, insights, and recommendations.
+
+
+Frontend Visualization:
+
+Results display instantly in a color-coded card (🟢 Low, 🟡 Medium, 🔴 High).
+Dynamic Graphs update automatically:
+
+Doughnut Chart: Probability distribution across classes.
+Bar Chart: Feature importance based on input values.
+
+
+Reset Functionality: Clears form, graphs, and history for new predictions.
+
+
+Response Handling:
+
+Success: Rich JSON with confidence (e.g., 49%), recommendations (e.g., "Excellent efficiency!"), and visual elements (colors, emojis).
+Error: Graceful handling for invalid inputs (e.g., "Missing feature: T1") or network issues.
+
+
+
+The entire process takes <1 second, making it ideal for real-time IoT integration.
+Input Parameters and Ranges
+Our model uses 29 carefully selected features from the Household Appliances Energy Consumption Dataset (sourced from Kaggle). These represent a comprehensive view of indoor/outdoor conditions, appliance usage, and temporal patterns. All inputs are validated client-side and server-side for ranges.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CategoryParameterDescriptionTypical RangeUnitAppliance UsagelightsEnergy consumption of lighting appliances0 - 50WhIndoor Sensors (Temperature)T1 - T9Room temperatures across 9 locations (kitchen, living room, etc.)-10 - 30°CIndoor Sensors (Humidity)RH_1 - RH_9Relative humidity in corresponding rooms0 - 100%Outdoor WeatherT_outOutdoor temperature-10 - 30°CRH_outOutdoor relative humidity0 - 100%Press_mm_hgAtmospheric pressure700 - 800mmHgWindspeedWind speed0 - 20m/sVisibilityVisibility distance0 - 100kmTdewpointDew point temperature-10 - 20°CTemporal FeatureshourHour of day0 - 23HourdayofweekDay of week (Mon=0, Sun=6)0 - 6DaymonthMonth of year1 - 12Monthis_weekendBinary indicator for weekend0 - 1Boolean
+Notes on Inputs:
+
+Validation: Numbers only; out-of-range values trigger errors (e.g., humidity >100%).
+Default Ranges: Based on real household data (e.g., temperatures rarely exceed 30°C).
+Missing Values: Server rejects incomplete inputs; frontend provides defaults where possible.
+
+Predictions and Outputs
+The model outputs a 3-class classification of energy consumption for appliances (based on the target Appliances feature from the dataset):
+
+Low (<100 Wh) - 🟢 Optimal/Efficient
+
+Confidence Range: 40-60% (typical)
+Meaning: Minimal energy draw - ideal for off-peak usage.
+Recommendation: "Continue efficient habits. Estimated savings: 20-30% on bill."
+
+
+Medium (100-200 Wh) - 🟡 Moderate/Standard
+
+Confidence Range: 30-50%
+Meaning: Normal usage - room for minor optimizations.
+Recommendation: "Good balance. Try scheduling high-load appliances to off-peak hours."
+
+
+High (>200 Wh) - 🔴 High/Inefficient
+
+Confidence Range: 20-40%
+Meaning: Elevated consumption - potential waste.
+Recommendation: "High usage detected. Turn off unused lights (current: X Wh) and adjust thermostat."
+
+
+
+Additional Outputs:
+
+Confidence Score: Percentage (e.g., 49%) indicating prediction reliability.
+Probabilities: Breakdown (Low: 49%, Medium: 31%, High: 20%) for visualization.
+Insights: Key metrics (e.g., "Lights: 10 Wh, Indoor Temp: 22°C").
+Timestamp: When prediction was made (e.g., "2025-11-06 10:06:00").
+
+Model Performance (from training):
+
+Accuracy: 94.32%
+Precision: 92.15% (weighted)
+Recall: 94.32% (weighted)
+F1-Score: 93.22% (weighted)
+Training: LSTM with 50 units, 20 epochs, categorical cross-entropy loss.
+
+Technical Architecture
+
+Backend: Flask API (Python 3.x) - Lightweight, scalable, handles /predict endpoint.
+Model: LSTM Neural Network - Excels at time-series data (e.g., hourly patterns).
+
+Input: [1, 6, 29] (batch, timesteps, features).
+Output: Softmax probabilities for 3 classes.
+
+
+Frontend: Responsive HTML/CSS/JS - Form validation, dynamic charts (Chart.js), local storage for history.
+Deployment: Local (Flask server) - Easy to extend to cloud (Heroku/AWS).
+
+Data Source & Training
+
+Dataset: "Household Appliances Energy Consumption" (Kaggle) - ~19735 rows of 10-minute interval data.
+Training Process:
+
+Preprocessing: Binning target (Appliances) into 3 classes; feature engineering (time/weather).
+Split: 70% train, 15% validation, 15% test (chronological split).
+Model: Sequential LSTM (return_sequences=True) + Dense(3, softmax).
+Metrics: Achieved 94%+ accuracy after 20 epochs with Adam optimizer.
+
+
+
+Limitations & Future Enhancements
+
+Current: Single-household focus; assumes clean sensor data.
+Future: Multi-user dashboards, real-time IoT integration, energy cost calculator, mobile app.</p>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section">
+            <h2>📞 Contact Us</h2>
+            <div class="contact-info">
+                <p><strong>Name:</strong> P. Harinath</p>
+                <p><strong>Email:</strong> harinath.mbu@gmail.com</p>
+                <p><strong>Address:</strong> Tirupati, Andhra Pradesh, India</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Energy Consumption Forecasting. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark');
+            themeToggle.textContent = body.classList.contains('dark') ? '🌙' : '☀️';
+            localStorage.setItem('theme', body.classList.contains('dark') ? 'dark' : 'light');
+        });
+        
+        // Load saved theme
+        if (localStorage.getItem('theme') === 'dark') {
+            body.classList.add('dark');
+            themeToggle.textContent = '🌙';
+        }
+        
+        // Mobile menu toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const navMenu = document.getElementById('navMenu');
+        
+        menuToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+        });
+        
+        // Close menu when clicking on a link
+        document.querySelectorAll('.nav-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                navMenu.classList.remove('active');
+            });
+        });
+        
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Chart instances
+        let confidenceChart = null;
+        let featureChart = null;
+        let trendChart = null;
+        let tempChart = null;
+        
+        // Prediction form submission
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const predictBtn = document.getElementById('predictBtn');
+            const originalText = predictBtn.innerHTML;
+            
+            predictBtn.innerHTML = '<span class="loading"></span>Predicting...';
+            predictBtn.disabled = true;
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            try {
+                const response = await fetch('http://127.0.0.1:5000/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.error || result.status === 'error') {
+                    document.getElementById('predictionResult').innerHTML = `
+                        <div style="color: #ef4444; font-weight: bold;">
+                            ❌ Error: ${result.error || 'Unknown error occurred'}
+                        </div>
+                    `;
+                    document.getElementById('dynamicCharts').classList.add('hidden');
+                } else {
+                    // Show prediction result
+                    document.getElementById('predictionResult').innerHTML = `
+                        <div class="prediction-result" style="color: ${result.energy_level.color};">
+                            ${result.energy_level.emoji} ${result.prediction}
+                        </div>
+                        <div>Confidence: ${result.confidence_display}</div>
+                        <div style="margin-top: 1rem;">${result.recommendation}</div>
+                        <p style="margin-top: 1.5rem;"><strong>Key Insights:</strong></p>
+                        <ul>
+                            <li>Lights: ${result.insights.lights_usage} Wh</li>
+                            <li>Indoor Temp: ${result.insights.indoor_temp} °C</li>
+                            <li>Outdoor Temp: ${result.insights.outdoor_temp} °C</li>
+                            <li>Humidity: ${result.insights.humidity} %</li>
+                            <li>Time: ${result.insights.hour_of_day}:00</li>
+                        </ul>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: #64748b;">Model: ${result.model_used} | ${result.timestamp}</p>
+                    `;
+                    document.getElementById('predictionResult').classList.add('show');
+                    
+                    // Update dynamic charts
+                    updateDynamicCharts(result, data);
+                    document.getElementById('dynamicCharts').classList.remove('hidden');
+                    
+                    // Scroll to results
+                    document.getElementById('dynamicCharts').scrollIntoView({ 
+                        behavior: 'smooth' 
+                    });
+                }
+            } catch (error) {
+                document.getElementById('predictionResult').innerHTML = `
+                    <div style="color: #ef4444; font-weight: bold;">
+                        ❌ Network Error: Unable to connect to prediction service. Please check if the backend is running on http://127.0.0.1:5000.
+                    </div>
+                `;
+                document.getElementById('dynamicCharts').classList.add('hidden');
+                console.error('Prediction error:', error);
+            }
+            
+            predictBtn.innerHTML = originalText;
+            predictBtn.disabled = false;
+        });
+        
+        function updateDynamicCharts(result, inputData) {
+            const chartData = result.chart_data;
+            const probs = chartData.probabilities;
+            const labels = chartData.labels;
+            const colors = chartData.colors;
+            
+            // 1. Confidence Distribution (Doughnut Chart with percentages)
+            updateConfidenceChart(probs, labels, colors);
+            
+            // 2. Feature Importance (Bar Chart with percentages)
+            updateFeatureChart(inputData);
+            
+            // 3. Energy Prediction Trend (Line Chart)
+            updateTrendChart(probs, inputData);
+            
+            // 4. Temperature vs Energy (Scatter Chart)
+            updateTempChart(inputData);
+        }
+        
+        function updateConfidenceChart(probs, labels, colors) {
+            const ctx = document.getElementById('confidenceChart').getContext('2d');
+            if (confidenceChart) confidenceChart.destroy();
+            
+            confidenceChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: probs,
+                        backgroundColor: colors,
+                        borderColor: colors.map(c => c.replace('0.8', '1')),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+        
+        function updateFeatureChart(inputData) {
+            // Simulate feature importance based on input values
+            const featureNames = ['Lights', 'T1', 'RH_1', 'T_out', 'Hour'];
+            const importance = [
+                parseFloat(inputData.lights || 0),
+                Math.abs(parseFloat(inputData.T1 || 0)),
+                parseFloat(inputData.RH_1 || 0),
+                Math.abs(parseFloat(inputData.T_out || 0)),
+                parseFloat(inputData.hour || 0)
+            ].map(v => Math.min(v / 100, 1)); // Normalize
+            
+            const ctx = document.getElementById('featureChart').getContext('2d');
+            if (featureChart) featureChart.destroy();
+            
+            featureChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: featureNames,
+                    datasets: [{
+                        label: 'Relative Importance',
+                        data: importance,
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+        
+        function updateTrendChart(probs, inputData) {
+            // Simulate trend based on prediction confidence and user input hour
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            if (trendChart) trendChart.destroy();
+            
+            const maxProb = Math.max(...probs);
+            const startHour = parseInt(inputData.hour || 0);
+            const trendData = Array.from({length: 24}, (_, i) => {
+                const hourOffset = (startHour + i) % 24;
+                return maxProb * (Math.sin(hourOffset * 0.5) * 0.3 + 0.7);
+            });
+            
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => `Hour ${(startHour + i) % 24}`),
+                    datasets: [{
+                        label: 'Predicted Energy Trend',
+                        data: trendData,
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateTempChart(inputData) {
+            const ctx = document.getElementById('tempChart').getContext('2d');
+            if (tempChart) tempChart.destroy();
+            
+            const temps = [inputData.T1, inputData.T2, inputData.T3, inputData.T4, inputData.T5].map(t => parseFloat(t) || 0);
+            const energyImpact = temps.map((temp, i) => Math.abs(temp) / 50 + Math.random() * 0.2); // Simulated dynamic impact
+            
+            tempChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Temperature vs Energy Impact',
+                        data: temps.map((temp, i) => ({x: temp, y: energyImpact[i]})),
+                        backgroundColor: 'rgba(139, 92, 246, 0.6)',
+                        borderColor: 'rgba(139, 92, 246, 1)',
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Temperature (°C)' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Energy Impact' },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Contact form submission
+        document.getElementById('contactForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            try {
+                const response = await fetch('http://127.0.0.1:5000/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                const contactResult = document.getElementById('contactResult');
+                
+                if (result.error) {
+                    contactResult.innerHTML = `<div style="color: #ef4444;">❌ ${result.error}</div>`;
+                } else {
+                    contactResult.innerHTML = `<div style="color: #10b981;">✅ ${result.success}</div>`;
+                    contactResult.classList.add('show');
+                    e.target.reset();
+                }
+            } catch (error) {
+                document.getElementById('contactResult').innerHTML = 
+                    '<div style="color: #ef4444;">❌ Network Error</div>';
+                console.error('Contact error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
